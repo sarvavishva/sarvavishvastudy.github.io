@@ -5,60 +5,160 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Randomized Cube Quiz</title>
     <style>
-        :root { --primary: #6c5ce7; --success: #00b894; --error: #d63031; --dark: #2d3436; }
-        body { font-family: 'Segoe UI', sans-serif; background: #dfe6e9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .container { background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 15px 30px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
-        .menu-btn { display: block; width: 100%; padding: 15px; margin: 10px 0; font-size: 1.1rem; background: var(--primary); color: white; border: none; border-radius: 12px; cursor: pointer; transition: 0.2s; }
-        .menu-btn:hover { opacity: 0.9; transform: scale(1.02); }
+        :root {
+            --primary: #6366f1;
+            --success: #22c55e;
+            --error: #ef4444;
+            --bg: #f8fafc;
+            --card: #ffffff;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: var(--card);
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        h1 { color: #1e293b; margin-bottom: 1rem; }
+        .menu-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 12px 0;
+            font-size: 1.1rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .menu-btn:hover { transform: translateY(-2px); opacity: 0.9; }
+        
         .quiz-section { display: none; }
-        input { width: 80%; padding: 12px; font-size: 1.5rem; border: 2px solid #fab1a0; border-radius: 10px; margin: 20px 0; text-align: center; outline: none; }
-        .submit-btn { background: var(--dark); color: white; padding: 12px 30px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; }
-        #feedback { margin-top: 15px; min-height: 24px; font-weight: bold; font-size: 1.1rem; }
-        .progress { font-size: 0.9rem; color: #636e72; margin-bottom: 10px; }
+        .cube-display { font-size: 3rem; font-weight: 800; color: var(--primary); margin: 20px 0; }
+        input {
+            width: 90%;
+            padding: 15px;
+            font-size: 1.5rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            outline: none;
+        }
+        input:focus { border-color: var(--primary); }
+        .submit-btn {
+            background: #1e293b;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1rem;
+        }
+        #feedback { margin-top: 15px; font-weight: bold; min-height: 24px; }
+        .back-link { margin-top: 20px; display: block; color: #64748b; cursor: pointer; text-decoration: underline; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div id="menu">
-        <h1>Cube Trainer</h1>
-        <p>Pick a level (Randomized Order):</p>
-        <button class="menu-btn" onclick="initQuiz(1, 10)">Level 1: 1 - 10</button>
-        <button class="menu-btn" onclick="initQuiz(11, 20)">Level 2: 11 - 20</button>
-        <button class="menu-btn" onclick="initQuiz(21, 30)">Level 3: 21 - 30</button>
+        <h1>Cube Quiz</h1>
+        <p>Select a range to test (Randomized):</p>
+        <button class="menu-btn" onclick="startQuiz(1, 10)">Range 1 - 10</button>
+        <button class="menu-btn" onclick="startQuiz(11, 20)">Range 11 - 20</button>
+        <button class="menu-btn" onclick="startQuiz(21, 30)">Range 21 - 30</button>
     </div>
 
     <div id="quiz" class="quiz-section">
-        <div class="progress" id="progress-text">Question 1 of 10</div>
-        <h2 id="q-title">What is <span id="num-display">X</span>³?</h2>
-        <input type="number" id="answerInput" placeholder="?" onkeypress="if(event.key==='Enter') checkAnswer()">
+        <div id="progress" style="color: #64748b; font-size: 0.9rem;"></div>
+        <div class="cube-display"><span id="num-to-cube">?</span>³</div>
+        <input type="number" id="ansInput" placeholder="Answer" onkeypress="handleKey(event)">
         <button class="submit-btn" onclick="checkAnswer()">Submit</button>
         <div id="feedback"></div>
+        <span class="back-link" onclick="location.reload()">Back to Menu</span>
     </div>
 
     <div id="result" class="quiz-section">
-        <h1>Mastered! 🏆</h1>
-        <p>You finished this set in random order.</p>
-        <button class="menu-btn" onclick="location.reload()">Back to Home</button>
+        <h1>Well Done! 🎉</h1>
+        <p>You've completed this randomized set.</p>
+        <button class="menu-btn" onclick="location.reload()">Try Another Range</button>
     </div>
 </div>
 
 <script>
-    let questionPool = [];
-    let currentIndex = 0;
+    let currentQuestions = [];
+    let currentPos = 0;
 
-    function initQuiz(start, end) {
-        // Create the list of numbers
-        questionPool = [];
-        for (let i = start; i <= end; i++) {
-            questionPool.push(i);
+    function startQuiz(min, max) {
+        // 1. Create the range
+        currentQuestions = [];
+        for (let i = min; i <= max; i++) {
+            currentQuestions.push(i);
         }
-        
-        // Shuffle the array (Fisher-Yates algorithm)
-        for (let i = questionPool.length - 1; i > 0; i--) {
+
+        // 2. Randomize the range (Shuffle)
+        for (let i = currentQuestions.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
-            [questionPool[i], questionPool[j]] = [questionPool[j], questionPool[i]];
+            [currentQuestions[i], currentQuestions[j]] = [currentQuestions[j], currentQuestions[i]];
         }
 
-        currentIndex = 0;
-        document.getElementById('menu').style.display = 'none
+        currentPos = 0;
+        document.getElementById('menu').style.display = 'none';
+        document.getElementById('quiz').style.display = 'block';
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        document.getElementById('num-to-cube').innerText = currentQuestions[currentPos];
+        document.getElementById('progress').innerText = `Question ${currentPos + 1} of 10`;
+        document.getElementById('ansInput').value = "";
+        document.getElementById('feedback').innerText = "";
+        document.getElementById('ansInput').focus();
+    }
+
+    function checkAnswer() {
+        const val = document.getElementById('ansInput').value;
+        const correct = Math.pow(currentQuestions[currentPos], 3);
+        const feedback = document.getElementById('feedback');
+
+        if (parseInt(val) === correct) {
+            feedback.innerText = "Correct! 🌟";
+            feedback.style.color = var(--success);
+            setTimeout(() => {
+                currentPos++;
+                if (currentPos < currentQuestions.length) {
+                    loadQuestion();
+                } else {
+                    document.getElementById('quiz').style.display = 'none';
+                    document.getElementById('result').style.display = 'block';
+                }
+            }, 700);
+        } else {
+            feedback.innerText = "Try again!";
+            feedback.style.color = var(--error);
+        }
+    }
+
+    function handleKey(e) {
+        if (e.key === 'Enter') checkAnswer();
+    }
+</script>
+
+</body>
+</html>
