@@ -1,10 +1,53 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>My First Website</title>
+  <title>Cube Practice 1 to 10</title>
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      margin-top: 100px;
+    }
+    input {
+      padding: 8px;
+      font-size: 16px;
+    }
+    button {
+      padding: 8px 15px;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+    #result {
+      margin-top: 20px;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
-  <h1>Welcome to My Website 🎉</h1>
-  <p>This is my free website using GitHub Pages.</p>
-</body>
-</html>
+
+<h2>Cube Practice (1 to 10)</h2>
+
+<h3 id="question"></h3>
+
+<input type="number" id="answer" placeholder="Enter answer">
+<br>
+<button onclick="checkAnswer()">Submit</button>
+
+<p id="result"></p>
+
+<script>
+let number = 1;
+
+function loadQuestion() {
+  if (number <= 10) {
+    document.getElementById("question").innerText = number + "³ = ?";
+    document.getElementById("answer").value = "";
+    document.getElementById("result").innerText = "";
+  } else {
+    document.getElementById("question").innerText = "🎉 Completed!";
+    document.getElementById("answer").style.display = "none";
+  }
+}
+
+function checkAnswer() {
+  let userAnswer = document.getElementById("an
