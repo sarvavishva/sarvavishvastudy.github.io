@@ -1,53 +1,52 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Cube Practice 1 to 10</title>
-  <style>
-    body {
-      font-family: Arial;
-      text-align: center;
-      margin-top: 100px;
-    }
-    input {
-      padding: 8px;
-      font-size: 16px;
-    }
-    button {
-      padding: 8px 15px;
-      font-size: 16px;
-      margin-top: 10px;
-    }
-    #result {
-      margin-top: 20px;
-      font-weight: bold;
-    }
-  </style>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; padding-top: 50px; background: #f4f4f9; }
+        .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 300px; text-align: center; }
+        input { width: 80%; padding: 10px; margin: 20px 0; border: 2px solid #ddd; border-radius: 5px; font-size: 1.1rem; }
+        button { background: #6200ee; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+        #feedback { margin-top: 15px; font-weight: bold; }
+    </style>
 </head>
 <body>
+    <div class="card">
+        <h2 id="q-num">Question 1</h2>
+        <p id="q-text">What is the cube of 1?</p>
+        <input type="number" id="answer" placeholder="Enter answer...">
+        <br>
+        <button onclick="checkAnswer()">Submit</button>
+        <div id="feedback"></div>
+    </div>
 
-<h2>Cube Practice (1 to 10)</h2>
+    <script>
+        let current = 1;
+        const answers = { 1:1, 2:8, 3:27, 4:64, 5:125, 6:216, 7:343, 8:512, 9:729, 10:1000 };
+        
+        function checkAnswer() {
+            let userAns = document.getElementById('answer').value;
+            let feedback = document.getElementById('feedback');
+            if(userAns == answers[current]) {
+                feedback.style.color = "green";
+                feedback.innerHTML = "Correct! 🎉";
+                setTimeout(nextQuestion, 1000);
+            } else {
+                feedback.style.color = "red";
+                feedback.innerHTML = "Try again!";
+            }
+        }
 
-<h3 id="question"></h3>
-
-<input type="number" id="answer" placeholder="Enter answer">
-<br>
-<button onclick="checkAnswer()">Submit</button>
-
-<p id="result"></p>
-
-<script>
-let number = 1;
-
-function loadQuestion() {
-  if (number <= 10) {
-    document.getElementById("question").innerText = number + "³ = ?";
-    document.getElementById("answer").value = "";
-    document.getElementById("result").innerText = "";
-  } else {
-    document.getElementById("question").innerText = "🎉 Completed!";
-    document.getElementById("answer").style.display = "none";
-  }
-}
-
-function checkAnswer() {
-  let userAnswer = document.getElementById("an
+        function nextQuestion() {
+            current++;
+            if(current > 10) {
+                document.body.innerHTML = "<h1>Quiz Complete! 🏆</h1>";
+                return;
+            }
+            document.getElementById('q-num').innerText = "Question " + current;
+            document.getElementById('q-text').innerText = "What is the cube of " + current + "?";
+            document.getElementById('answer').value = "";
+            document.getElementById('feedback').innerHTML = "";
+        }
+    </script>
+</body>
+</html>
