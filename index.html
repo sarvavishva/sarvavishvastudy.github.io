@@ -1,52 +1,167 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cube Master Quiz</title>
     <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; padding-top: 50px; background: #f4f4f9; }
-        .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 300px; text-align: center; }
-        input { width: 80%; padding: 10px; margin: 20px 0; border: 2px solid #ddd; border-radius: 5px; font-size: 1.1rem; }
-        button { background: #6200ee; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
-        #feedback { margin-top: 15px; font-weight: bold; }
+        :root {
+            --primary: #4a90e2;
+            --success: #2ecc71;
+            --error: #e74c3c;
+            --dark: #2c3e50;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        h1 { color: var(--dark); margin-bottom: 1.5rem; }
+        .menu-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            font-size: 1.1rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+        }
+        .menu-btn:hover { background: #357abd; transform: translateY(-2px); }
+        
+        .quiz-section { display: none; }
+        input {
+            width: 80%;
+            padding: 12px;
+            font-size: 1.2rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .submit-btn {
+            background: var(--success);
+            color: white;
+            padding: 10px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #feedback { margin-top: 15px; min-height: 24px; font-weight: bold; }
+        .back-btn {
+            margin-top: 20px;
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h2 id="q-num">Question 1</h2>
-        <p id="q-text">What is the cube of 1?</p>
-        <input type="number" id="answer" placeholder="Enter answer...">
-        <br>
-        <button onclick="checkAnswer()">Submit</button>
-        <div id="feedback"></div>
+
+<div class="container">
+    <div id="menu">
+        <h1>Cube Quiz</h1>
+        <p>Select your range:</p>
+        <button class="menu-btn" onclick="startQuiz(1, 10)">Cubes 1 to 10</button>
+        <button class="menu-btn" onclick="startQuiz(11, 20)">Cubes 11 to 20</button>
+        <button class="menu-btn" onclick="startQuiz(21, 30)">Cubes 21 to 30</button>
     </div>
 
-    <script>
-        let current = 1;
-        const answers = { 1:1, 2:8, 3:27, 4:64, 5:125, 6:216, 7:343, 8:512, 9:729, 10:1000 };
-        
-        function checkAnswer() {
-            let userAns = document.getElementById('answer').value;
-            let feedback = document.getElementById('feedback');
-            if(userAns == answers[current]) {
-                feedback.style.color = "green";
-                feedback.innerHTML = "Correct! 🎉";
-                setTimeout(nextQuestion, 1000);
-            } else {
-                feedback.style.color = "red";
-                feedback.innerHTML = "Try again!";
-            }
-        }
+    <div id="quiz" class="quiz-section">
+        <h2 id="q-title">Question</h2>
+        <p id="q-text">What is the cube of <span id="num-display">X</span>?</p>
+        <input type="number" id="answerInput" placeholder="Enter your answer" onkeypress="handleEnter(event)">
+        <br>
+        <button class="submit-btn" onclick="checkAnswer()">Submit Answer</button>
+        <div id="feedback"></div>
+        <button class="back-btn" onclick="showMenu()">← Back to Menu</button>
+    </div>
 
-        function nextQuestion() {
-            current++;
-            if(current > 10) {
-                document.body.innerHTML = "<h1>Quiz Complete! 🏆</h1>";
-                return;
-            }
-            document.getElementById('q-num').innerText = "Question " + current;
-            document.getElementById('q-text').innerText = "What is the cube of " + current + "?";
-            document.getElementById('answer').value = "";
-            document.getElementById('feedback').innerHTML = "";
+    <div id="result" class="quiz-section">
+        <h1>Excellent! 🎉</h1>
+        <p>You completed the set.</p>
+        <button class="menu-btn" onclick="showMenu()">Play Again</button>
+    </div>
+</div>
+
+<script>
+    let currentNum = 0;
+    let endRange = 0;
+
+    function startQuiz(start, end) {
+        currentNum = start;
+        endRange = end;
+        document.getElementById('menu').style.display = 'none';
+        document.getElementById('result').style.display = 'none';
+        document.getElementById('quiz').style.display = 'block';
+        updateQuestion();
+    }
+
+    function showMenu() {
+        document.getElementById('quiz').style.display = 'none';
+        document.getElementById('result').style.display = 'none';
+        document.getElementById('menu').style.display = 'block';
+    }
+
+    function updateQuestion() {
+        document.getElementById('num-display').innerText = currentNum;
+        document.getElementById('q-title').innerText = "Cube of " + currentNum;
+        document.getElementById('answerInput').value = "";
+        document.getElementById('feedback').innerText = "";
+        document.getElementById('answerInput').focus();
+    }
+
+    function checkAnswer() {
+        const userAns = document.getElementById('answerInput').value;
+        const correctAns = Math.pow(currentNum, 3);
+        const feedback = document.getElementById('feedback');
+
+        if (userAns == correctAns) {
+            feedback.innerText = "Correct! Well done.";
+            feedback.style.color = "var(--success)";
+            
+            setTimeout(() => {
+                currentNum++;
+                if (currentNum > endRange) {
+                    showResults();
+                } else {
+                    updateQuestion();
+                }
+            }, 1000);
+        } else {
+            feedback.innerText = "Try again! Think carefully.";
+            feedback.style.color = "var(--error)";
         }
-    </script>
+    }
+
+    function showResults() {
+        document.getElementById('quiz').style.display = 'none';
+        document.getElementById('result').style.display = 'block';
+    }
+
+    function handleEnter(e) {
+        if (e.key === 'Enter') checkAnswer();
+    }
+</script>
+
 </body>
 </html>
