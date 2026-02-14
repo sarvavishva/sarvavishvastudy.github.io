@@ -3,165 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cube Master Quiz</title>
+    <title>Randomized Cube Quiz</title>
     <style>
-        :root {
-            --primary: #4a90e2;
-            --success: #2ecc71;
-            --error: #e74c3c;
-            --dark: #2c3e50;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f0f2f5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .container {
-            background: white;
-            padding: 2.5rem;
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-        }
-        h1 { color: var(--dark); margin-bottom: 1.5rem; }
-        .menu-btn {
-            display: block;
-            width: 100%;
-            padding: 15px;
-            margin: 10px 0;
-            font-size: 1.1rem;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: transform 0.2s, background 0.2s;
-        }
-        .menu-btn:hover { background: #357abd; transform: translateY(-2px); }
-        
+        :root { --primary: #6c5ce7; --success: #00b894; --error: #d63031; --dark: #2d3436; }
+        body { font-family: 'Segoe UI', sans-serif; background: #dfe6e9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .container { background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 15px 30px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+        .menu-btn { display: block; width: 100%; padding: 15px; margin: 10px 0; font-size: 1.1rem; background: var(--primary); color: white; border: none; border-radius: 12px; cursor: pointer; transition: 0.2s; }
+        .menu-btn:hover { opacity: 0.9; transform: scale(1.02); }
         .quiz-section { display: none; }
-        input {
-            width: 80%;
-            padding: 12px;
-            font-size: 1.2rem;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            margin: 20px 0;
-            text-align: center;
-        }
-        .submit-btn {
-            background: var(--success);
-            color: white;
-            padding: 10px 25px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        #feedback { margin-top: 15px; min-height: 24px; font-weight: bold; }
-        .back-btn {
-            margin-top: 20px;
-            background: none;
-            border: none;
-            color: #888;
-            cursor: pointer;
-            text-decoration: underline;
-        }
+        input { width: 80%; padding: 12px; font-size: 1.5rem; border: 2px solid #fab1a0; border-radius: 10px; margin: 20px 0; text-align: center; outline: none; }
+        .submit-btn { background: var(--dark); color: white; padding: 12px 30px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; }
+        #feedback { margin-top: 15px; min-height: 24px; font-weight: bold; font-size: 1.1rem; }
+        .progress { font-size: 0.9rem; color: #636e72; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div id="menu">
-        <h1>Cube Quiz</h1>
-        <p>Select your range:</p>
-        <button class="menu-btn" onclick="startQuiz(1, 10)">Cubes 1 to 10</button>
-        <button class="menu-btn" onclick="startQuiz(11, 20)">Cubes 11 to 20</button>
-        <button class="menu-btn" onclick="startQuiz(21, 30)">Cubes 21 to 30</button>
+        <h1>Cube Trainer</h1>
+        <p>Pick a level (Randomized Order):</p>
+        <button class="menu-btn" onclick="initQuiz(1, 10)">Level 1: 1 - 10</button>
+        <button class="menu-btn" onclick="initQuiz(11, 20)">Level 2: 11 - 20</button>
+        <button class="menu-btn" onclick="initQuiz(21, 30)">Level 3: 21 - 30</button>
     </div>
 
     <div id="quiz" class="quiz-section">
-        <h2 id="q-title">Question</h2>
-        <p id="q-text">What is the cube of <span id="num-display">X</span>?</p>
-        <input type="number" id="answerInput" placeholder="Enter your answer" onkeypress="handleEnter(event)">
-        <br>
-        <button class="submit-btn" onclick="checkAnswer()">Submit Answer</button>
+        <div class="progress" id="progress-text">Question 1 of 10</div>
+        <h2 id="q-title">What is <span id="num-display">X</span>³?</h2>
+        <input type="number" id="answerInput" placeholder="?" onkeypress="if(event.key==='Enter') checkAnswer()">
+        <button class="submit-btn" onclick="checkAnswer()">Submit</button>
         <div id="feedback"></div>
-        <button class="back-btn" onclick="showMenu()">← Back to Menu</button>
     </div>
 
     <div id="result" class="quiz-section">
-        <h1>Excellent! 🎉</h1>
-        <p>You completed the set.</p>
-        <button class="menu-btn" onclick="showMenu()">Play Again</button>
+        <h1>Mastered! 🏆</h1>
+        <p>You finished this set in random order.</p>
+        <button class="menu-btn" onclick="location.reload()">Back to Home</button>
     </div>
 </div>
 
 <script>
-    let currentNum = 0;
-    let endRange = 0;
+    let questionPool = [];
+    let currentIndex = 0;
 
-    function startQuiz(start, end) {
-        currentNum = start;
-        endRange = end;
-        document.getElementById('menu').style.display = 'none';
-        document.getElementById('result').style.display = 'none';
-        document.getElementById('quiz').style.display = 'block';
-        updateQuestion();
-    }
-
-    function showMenu() {
-        document.getElementById('quiz').style.display = 'none';
-        document.getElementById('result').style.display = 'none';
-        document.getElementById('menu').style.display = 'block';
-    }
-
-    function updateQuestion() {
-        document.getElementById('num-display').innerText = currentNum;
-        document.getElementById('q-title').innerText = "Cube of " + currentNum;
-        document.getElementById('answerInput').value = "";
-        document.getElementById('feedback').innerText = "";
-        document.getElementById('answerInput').focus();
-    }
-
-    function checkAnswer() {
-        const userAns = document.getElementById('answerInput').value;
-        const correctAns = Math.pow(currentNum, 3);
-        const feedback = document.getElementById('feedback');
-
-        if (userAns == correctAns) {
-            feedback.innerText = "Correct! Well done.";
-            feedback.style.color = "var(--success)";
-            
-            setTimeout(() => {
-                currentNum++;
-                if (currentNum > endRange) {
-                    showResults();
-                } else {
-                    updateQuestion();
-                }
-            }, 1000);
-        } else {
-            feedback.innerText = "Try again! Think carefully.";
-            feedback.style.color = "var(--error)";
+    function initQuiz(start, end) {
+        // Create the list of numbers
+        questionPool = [];
+        for (let i = start; i <= end; i++) {
+            questionPool.push(i);
         }
-    }
+        
+        // Shuffle the array (Fisher-Yates algorithm)
+        for (let i = questionPool.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [questionPool[i], questionPool[j]] = [questionPool[j], questionPool[i]];
+        }
 
-    function showResults() {
-        document.getElementById('quiz').style.display = 'none';
-        document.getElementById('result').style.display = 'block';
-    }
-
-    function handleEnter(e) {
-        if (e.key === 'Enter') checkAnswer();
-    }
-</script>
-
-</body>
-</html>
+        currentIndex = 0;
+        document.getElementById('menu').style.display = 'none
