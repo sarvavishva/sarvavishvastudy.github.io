@@ -9,11 +9,11 @@
             --primary: #6366f1;
             --success: #22c55e;
             --error: #ef4444;
-            --bg: #f8fafc;
+            --bg: #f1f5f9;
             --card: #ffffff;
         }
         body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
             background: var(--bg);
             display: flex;
             justify-content: center;
@@ -23,19 +23,19 @@
         }
         .container {
             background: var(--card);
-            padding: 2.5rem;
+            padding: 2rem;
             border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-            width: 100%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 90%;
             max-width: 400px;
             text-align: center;
         }
-        h1 { color: #1e293b; margin-bottom: 1rem; }
+        h1 { color: #1e293b; margin-top: 0; }
         .menu-btn {
             display: block;
             width: 100%;
             padding: 15px;
-            margin: 12px 0;
+            margin: 10px 0;
             font-size: 1.1rem;
             background: var(--primary);
             color: white;
@@ -43,35 +43,34 @@
             border-radius: 12px;
             cursor: pointer;
             font-weight: 600;
-            transition: all 0.2s;
+            transition: 0.2s;
         }
-        .menu-btn:hover { transform: translateY(-2px); opacity: 0.9; }
+        .menu-btn:hover { opacity: 0.9; transform: scale(1.02); }
         
         .quiz-section { display: none; }
-        .cube-display { font-size: 3rem; font-weight: 800; color: var(--primary); margin: 20px 0; }
+        .cube-display { font-size: 3.5rem; font-weight: 800; color: var(--primary); margin: 15px 0; }
         input {
-            width: 90%;
-            padding: 15px;
+            width: 80%;
+            padding: 12px;
             font-size: 1.5rem;
             border: 2px solid #e2e8f0;
             border-radius: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             text-align: center;
-            outline: none;
         }
-        input:focus { border-color: var(--primary); }
         .submit-btn {
             background: #1e293b;
             color: white;
-            padding: 12px 30px;
+            padding: 12px;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             cursor: pointer;
             width: 100%;
-            font-size: 1rem;
+            font-size: 1.1rem;
+            font-weight: bold;
         }
-        #feedback { margin-top: 15px; font-weight: bold; min-height: 24px; }
-        .back-link { margin-top: 20px; display: block; color: #64748b; cursor: pointer; text-decoration: underline; }
+        #feedback { margin-top: 15px; font-weight: bold; height: 24px; }
+        .back-link { margin-top: 20px; display: block; color: #64748b; cursor: pointer; text-decoration: underline; font-size: 0.9rem; }
     </style>
 </head>
 <body>
@@ -79,84 +78,81 @@
 <div class="container">
     <div id="menu">
         <h1>Cube Quiz</h1>
-        <p>Select a range to test (Randomized):</p>
+        <p>Choose a range to start:</p>
         <button class="menu-btn" onclick="startQuiz(1, 10)">Range 1 - 10</button>
         <button class="menu-btn" onclick="startQuiz(11, 20)">Range 11 - 20</button>
         <button class="menu-btn" onclick="startQuiz(21, 30)">Range 21 - 30</button>
     </div>
 
     <div id="quiz" class="quiz-section">
-        <div id="progress" style="color: #64748b; font-size: 0.9rem;"></div>
+        <div id="progress" style="color: #64748b; font-size: 0.8rem;"></div>
         <div class="cube-display"><span id="num-to-cube">?</span>³</div>
-        <input type="number" id="ansInput" placeholder="Answer" onkeypress="handleKey(event)">
+        <input type="number" id="ansInput" placeholder="?" onkeypress="if(event.key==='Enter') checkAnswer()">
         <button class="submit-btn" onclick="checkAnswer()">Submit</button>
         <div id="feedback"></div>
-        <span class="back-link" onclick="location.reload()">Back to Menu</span>
+        <span class="back-link" onclick="location.reload()">Return to Menu</span>
     </div>
 
     <div id="result" class="quiz-section">
-        <h1>Well Done! 🎉</h1>
-        <p>You've completed this randomized set.</p>
-        <button class="menu-btn" onclick="location.reload()">Try Another Range</button>
+        <h1>Perfect! 🏆</h1>
+        <p>You completed the randomized set.</p>
+        <button class="menu-btn" onclick="location.reload()">Main Menu</button>
     </div>
 </div>
 
 <script>
-    let currentQuestions = [];
-    let currentPos = 0;
+    let questions = [];
+    let currentIdx = 0;
 
     function startQuiz(min, max) {
-        // 1. Create the range
-        currentQuestions = [];
+        // 1. Generate numbers in range
+        questions = [];
         for (let i = min; i <= max; i++) {
-            currentQuestions.push(i);
+            questions.push(i);
         }
 
-        // 2. Randomize the range (Shuffle)
-        for (let i = currentQuestions.length - 1; i > 0; i--) {
+        // 2. Shuffle the numbers randomly
+        for (let i = questions.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
-            [currentQuestions[i], currentQuestions[j]] = [currentQuestions[j], currentQuestions[i]];
+            [questions[i], questions[j]] = [questions[j], questions[i]];
         }
 
-        currentPos = 0;
+        currentIdx = 0;
         document.getElementById('menu').style.display = 'none';
         document.getElementById('quiz').style.display = 'block';
-        loadQuestion();
+        loadNext();
     }
 
-    function loadQuestion() {
-        document.getElementById('num-to-cube').innerText = currentQuestions[currentPos];
-        document.getElementById('progress').innerText = `Question ${currentPos + 1} of 10`;
+    function loadNext() {
+        document.getElementById('num-to-cube').innerText = questions[currentIdx];
+        document.getElementById('progress').innerText = `Question ${currentIdx + 1} of ${questions.length}`;
         document.getElementById('ansInput').value = "";
         document.getElementById('feedback').innerText = "";
         document.getElementById('ansInput').focus();
     }
 
     function checkAnswer() {
-        const val = document.getElementById('ansInput').value;
-        const correct = Math.pow(currentQuestions[currentPos], 3);
+        const userVal = document.getElementById('ansInput').value;
+        const correctVal = Math.pow(questions[currentIdx], 3);
         const feedback = document.getElementById('feedback');
 
-        if (parseInt(val) === correct) {
-            feedback.innerText = "Correct! 🌟";
-            feedback.style.color = var(--success);
+        if (userVal == correctVal) {
+            feedback.innerText = "Correct! 🎉";
+            feedback.style.color = "#22c55e"; // Using hex for safety
+            
             setTimeout(() => {
-                currentPos++;
-                if (currentPos < currentQuestions.length) {
-                    loadQuestion();
+                currentIdx++;
+                if (currentIdx < questions.length) {
+                    loadNext();
                 } else {
                     document.getElementById('quiz').style.display = 'none';
                     document.getElementById('result').style.display = 'block';
                 }
-            }, 700);
+            }, 600);
         } else {
             feedback.innerText = "Try again!";
-            feedback.style.color = var(--error);
+            feedback.style.color = "#ef4444";
         }
-    }
-
-    function handleKey(e) {
-        if (e.key === 'Enter') checkAnswer();
     }
 </script>
 
